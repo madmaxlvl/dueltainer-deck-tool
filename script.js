@@ -17,33 +17,35 @@ async function importDeck() {
 
   try {
     const res = await fetch(`https://www.duelingbook.com/php-scripts/load-deck.php?deck=${deckId}`);
-    const text = await res.text();
+    const rawText = await res.text();
 
-    // Try to parse JSON manually
+    console.log("🧾 Raw Response from DuelingBook:", rawText);
+
     let deck;
     try {
-      deck = JSON.parse(text);
-    } catch (jsonErr) {
-      console.error("Invalid JSON from DuelingBook:", text);
-      alert("⚠️ The deck may be private, invalid, or DuelingBook returned an error.");
+      deck = JSON.parse(rawText);
+    } catch (e) {
+      console.error("❌ Failed to parse JSON. Deck may be private or broken.", e);
+      alert("This deck could not be read — it may be private or invalid.");
       return;
     }
 
-    // Check if deck.main is a real array
-    if (!deck || !Array.isArray(deck.main)) {
-      console.warn("Deck is invalid or missing .main array:", deck);
-      alert("❌ This deck appears empty, invalid, or not public.");
+    if (!deck || !deck.main || !Array.isArray(deck.main)) {
+      console.warn("❗ Deck is missing or malformed:", deck);
+      alert("❌ This deck appears to be empty, private, or malformed.");
       return;
     }
 
-    console.log("✅ Deck loaded:", deck);
+    console.log("✅ Parsed Deck:", deck);
     window.currentDeck = deck;
     await renderDeck(deck);
+
   } catch (err) {
-    console.error("Error fetching deck:", err);
-    alert("❌ Could not fetch the deck. Try again later or with another URL.");
+    console.error("❌ Error fetching deck from DuelingBook:", err);
+    alert("Network error — check your connection or try again later.");
   }
 }
+
 
 
 
