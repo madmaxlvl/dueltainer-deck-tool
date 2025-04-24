@@ -30,25 +30,33 @@ function parseYDK(text) {
   const side = [];
 
   let currentSection = null;
-  const lines = text.split("\n");
+  const lines = text.split(/\r?\n/);
 
   for (const line of lines) {
-    const trimmed = line.trim();
+    const trimmed = line.trim().toLowerCase();
 
-    if (trimmed.toLowerCase() === "main") {
-  currentSection = main;
-} else if (trimmed.toLowerCase() === "extra") {
-  currentSection = extra;
-} else if (trimmed.toLowerCase() === "side") {
-  currentSection = side;
-} else if (trimmed.startsWith("!")) {
-  continue;
+    if (trimmed.startsWith("#") || trimmed === "") {
+      continue; // Ignore comments and blank lines
+    }
+
+    // Section control
+    if (trimmed === "main") {
+      currentSection = main;
+    } else if (trimmed === "extra") {
+      currentSection = extra;
+    } else if (trimmed === "side") {
+      currentSection = side;
     } else if (/^\d+$/.test(trimmed)) {
       currentSection?.push(Number(trimmed));
+    } else {
+      console.warn("Skipping unrecognized line in .ydk:", line);
     }
   }
 
+  console.log("Parsed .ydk:", { main, extra, side });
   return { main, extra, side };
+}
+
 }
 
 async function renderDeck(deck) {
