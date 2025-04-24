@@ -58,12 +58,6 @@ function parseYDK(text) {
   return { main, extra, side };
 }
 
-
-  console.log("✅ Parsed Deck:", { main, extra, side });
-  return { main, extra, side };
-}
-
-
 async function renderDeck(deck) {
   const mainUL = document.getElementById("main-deck");
   const extraUL = document.getElementById("extra-deck");
