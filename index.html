@@ -2,17 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dueltainer Deck Tool</title>
+  <title>Dueltainer Deck Tool (.ydk Upload)</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🃏 Dueltainer Format Deck Builder + Checker</h1>
+  <h1>🃏 Upload a .YDK Deck File</h1>
 
-  <div id="import">
-    <input id="deckURL" type="text" placeholder="Paste DuelingBook Deck URL or .ydk contents">
-    <button onclick="importDeck()">Import Deck</button>
-    <button onclick="checkLegality()">Check Legality</button>
-  </div>
+  <input type="file" id="fileInput" accept=".ydk">
+  <button onclick="handleFileUpload()">Import Deck</button>
+  <button onclick="checkLegality()">Check Legality</button>
 
   <div id="deck-area">
     <h2>Main Deck</h2>
