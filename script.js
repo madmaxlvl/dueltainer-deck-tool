@@ -36,18 +36,15 @@ async function importDeck() {
       return;
     }
 
-    console.log("✅ Parsed Deck:", deck);
+    console.log("✅ Deck parsed successfully:", deck);
     window.currentDeck = deck;
     await renderDeck(deck);
 
   } catch (err) {
-    console.error("❌ Error fetching deck from DuelingBook:", err);
-    alert("Network error — check your connection or try again later.");
+    console.error("❌ Network error:", err);
+    alert("Could not fetch the deck. Try again later.");
   }
 }
-
-
-
 
 async function renderDeck(deck) {
   const mainUL = document.getElementById("main-deck");
@@ -55,12 +52,12 @@ async function renderDeck(deck) {
   mainUL.innerHTML = "";
   extraUL.innerHTML = "";
 
-  for (const id of deck.main) {
+  for (const id of Array.isArray(deck.main) ? deck.main : []) {
     const li = await createCardElement(id);
     mainUL.appendChild(li);
   }
 
-  for (const id of deck.extra) {
+  for (const id of Array.isArray(deck.extra) ? deck.extra : []) {
     const li = await createCardElement(id);
     extraUL.appendChild(li);
   }
