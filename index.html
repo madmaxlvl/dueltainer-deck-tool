@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dueltainer Deck Tool</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>🃏 Dueltainer Format Deck Builder + Checker</h1>
+
+  <div id="import">
+    <input id="deckURL" type="text" placeholder="Paste DuelingBook Deck URL or .ydk contents">
+    <button onclick="importDeck()">Import Deck</button>
+    <button onclick="checkLegality()">Check Legality</button>
+  </div>
+
+  <div id="deck-area">
+    <h2>Main Deck</h2>
+    <ul id="main-deck"></ul>
+
+    <h2>Extra Deck</h2>
+    <ul id="extra-deck"></ul>
+  </div>
+
+  <div id="result"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
