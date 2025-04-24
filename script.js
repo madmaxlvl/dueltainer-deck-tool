@@ -23,26 +23,28 @@ async function importDeck() {
     let deck;
     try {
       deck = JSON.parse(text);
-    } catch {
-      console.error("Failed to parse deck as JSON:", text);
-      alert("This deck may be private or invalid.");
+    } catch (jsonErr) {
+      console.error("Invalid JSON from DuelingBook:", text);
+      alert("⚠️ The deck may be private, invalid, or DuelingBook returned an error.");
       return;
     }
 
+    // Check if deck.main is a real array
     if (!deck || !Array.isArray(deck.main)) {
-      alert("This deck is empty, invalid, or not public.");
-      console.error("Invalid deck object:", deck);
+      console.warn("Deck is invalid or missing .main array:", deck);
+      alert("❌ This deck appears empty, invalid, or not public.");
       return;
     }
 
-    console.log("Deck loaded:", deck);
+    console.log("✅ Deck loaded:", deck);
     window.currentDeck = deck;
     await renderDeck(deck);
   } catch (err) {
-    console.error("Error importing deck:", err);
-    alert("Something went wrong while loading the deck.");
+    console.error("Error fetching deck:", err);
+    alert("❌ Could not fetch the deck. Try again later or with another URL.");
   }
 }
+
 
 
 async function renderDeck(deck) {
