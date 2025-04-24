@@ -35,14 +35,14 @@ function parseYDK(text) {
   for (const line of lines) {
     const trimmed = line.trim();
 
-    if (trimmed === "main") {
-      currentSection = main;
-    } else if (trimmed === "extra") {
-      currentSection = extra;
-    } else if (trimmed === "side") {
-      currentSection = side;
-    } else if (trimmed.startsWith("#") || trimmed === "") {
-      continue;
+    if (trimmed.toLowerCase() === "main") {
+  currentSection = main;
+} else if (trimmed.toLowerCase() === "extra") {
+  currentSection = extra;
+} else if (trimmed.toLowerCase() === "side") {
+  currentSection = side;
+} else if (trimmed.startsWith("!")) {
+  continue;
     } else if (/^\d+$/.test(trimmed)) {
       currentSection?.push(Number(trimmed));
     }
