@@ -127,7 +127,7 @@ function showTooltip(event, card) {
     tooltip.style.maxWidth = "200px";
     document.body.appendChild(tooltip);
   }
-  tooltip.innerHTML = `<strong>${card.name}</strong><br><img src='${card.image_url}' style='width:100%;'><br>${card.desc}`;
+  tooltip.innerHTML = `<strong>${card.name}</strong><br><img src='${card.image_url}' style='width:100%;'><br>${card.desc}<br><div style='margin-top:5px;'>${getCardBadge(card.name)}</div>`;
   tooltip.style.left = event.pageX + 15 + "px";
   tooltip.style.top = event.pageY + 15 + "px";
   tooltip.style.display = "block";
