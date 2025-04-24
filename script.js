@@ -14,6 +14,10 @@ function handleFileUpload() {
   reader.onload = function (e) {
     const text = e.target.result;
     const parsed = parseYDK(text);
+    if (!parsed.main.length && !parsed.extra.length) {
+      alert("No cards found. Is this a valid .ydk file?");
+      return;
+    }
     window.currentDeck = parsed;
     renderDeck(parsed);
   };
@@ -67,7 +71,7 @@ async function createCardElement(passcode) {
   }
 
   li.innerHTML = `
-    <img src="${card.card_images[0].image_url_small}" alt="${card.name}" title="${card.name}" style="height:90px;"><br>
+    <img src="${card.card_images[0].image_url_small}" alt="${card.name}" title="${card.name}"><br>
     ${card.name}
   `;
   return li;
@@ -91,5 +95,5 @@ async function fetchCardData(passcode) {
 }
 
 function checkLegality() {
-  alert("Legality rules coming in the next step!");
+  alert("Legality logic coming next!");
 }
