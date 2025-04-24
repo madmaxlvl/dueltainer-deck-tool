@@ -34,22 +34,30 @@ function parseYDK(text) {
 
   console.log("🔍 Raw .ydk lines:", lines);
 
-  for (let line of lines) {
-    const cleaned = line.trim().toLowerCase().replace(/[^\d#a-z]/gi, '');
-    if (!cleaned) continue;
+  for (let rawLine of lines) {
+    const trimmed = rawLine.trim();
 
-    if (cleaned === "main") {
+    if (trimmed.startsWith("#") || trimmed === "") {
+      continue;
+    }
+
+    if (trimmed.toLowerCase() === "main") {
       currentSection = main;
-    } else if (cleaned === "extra") {
+    } else if (trimmed.toLowerCase() === "extra") {
       currentSection = extra;
-    } else if (cleaned === "side") {
+    } else if (trimmed.toLowerCase() === "side") {
       currentSection = side;
-    } else if (/^\d+$/.test(cleaned)) {
-      currentSection?.push(Number(cleaned));
+    } else if (/^\d+$/.test(trimmed)) {
+      currentSection?.push(Number(trimmed));
     } else {
-      console.warn("⚠️ Unrecognized .ydk line:", line);
+      console.warn("⚠️ Skipping unrecognized line in .ydk:", rawLine);
     }
   }
+
+  console.log("✅ Final Parsed Deck:", { main, extra, side });
+  return { main, extra, side };
+}
+
 
   console.log("✅ Parsed Deck:", { main, extra, side });
   return { main, extra, side };
