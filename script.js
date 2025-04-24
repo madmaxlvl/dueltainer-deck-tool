@@ -258,7 +258,76 @@ function renderDeck(deck) {
   });
 }
 
+function setupSearchBar() {
+  const input = document.createElement("input");
+  input.type = "text";
+  input.id = "card-search-input";
+  input.placeholder = "Search cards...";
+  input.style.padding = "6px";
+  input.style.margin = "10px 0";
+  input.style.width = "300px";
+
+  const button = document.createElement("button");
+  button.innerText = "Search";
+  button.onclick = () => searchCards(input.value);
+
+  document.body.insertBefore(input, document.getElementById("deck-manager-feedback"));
+  document.body.insertBefore(button, document.getElementById("deck-manager-feedback"));
+}
+
+async function searchCards(query) {
+  if (!query.trim()) return;
+  try {
+    const res = await fetch(`${ygoproApi}fname=${encodeURIComponent(query.trim())}`);
+    const data = await res.json();
+    if (data.data?.length) {
+      showFeedback(`Found ${data.data.length} result(s). Click a card to add.`);
+      data.data.forEach(card => {
+        card.image_url = card.card_images?.[0]?.image_url || "";
+        cardCache[card.id] = card;
+        showTooltip({ pageX: 100, pageY: 100 }, card);
+        setTimeout(hideTooltip, 3000);
+        document.addEventListener("click", () => {
+          if (getCardTier(card) <= 2 || card.type.includes("Fusion") || card.type.includes("Synchro")) extraDeckCards.push(card);
+          else mainDeckCards.push(card);
+          updateDeckZonesUI();
+        }, { once: true });
+      });
+    } else {
+      showFeedback("No cards found.", false);
+    }
+  } catch (err) {
+    console.error("Search error", err);
+    showFeedback("Error searching for cards.", false);
+  }
+}
+
+// =========================
+// ADDITION: EXPORT YDK BUTTON
+// =========================
+
+function setupExportButton() {
+  const btn = document.createElement("button");
+  btn.innerText = "Export .YDK";
+  btn.onclick = exportDeck;
+  document.body.appendChild(btn);
+}
+
+function exportDeck() {
+  const lines = ["#main", ...mainDeckCards.map(c => c.id), "#extra", ...extraDeckCards.map(c => c.id), "!side"];
+  const text = lines.join("\r\n");
+  const blob = new Blob([text], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "dueltainer_deck.ydk";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showFeedback("Deck exported as .ydk", true);
+}
+
 window.addEventListener("DOMContentLoaded", () => {
+  // Existing buttons
   const importBtn = $("import-deck-btn");
   const inputFile = $("import-file-input");
   const legalityBtn = $("deck-check-btn");
@@ -275,4 +344,7 @@ window.addEventListener("DOMContentLoaded", () => {
   sortBtn?.addEventListener("click", sortDeck);
 
   loadAllLists();
+  setupSearchBar();
+  setupExportButton();
 });
+
