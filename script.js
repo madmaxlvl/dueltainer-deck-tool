@@ -1,49 +1,43 @@
 const cardCache = {};
 const ygoproApi = "https://db.ygoprodeck.com/api/v7/cardinfo.php?";
 
-function extractDeckId(url) {
-  const match = url.match(/id=(\d+)/);
-  return match ? match[1] : null;
-}
+function handleFileUpload() {
+  const fileInput = document.getElementById("fileInput");
+  const file = fileInput.files[0];
 
-async function importDeck() {
-  const input = document.getElementById("deckURL").value;
-  const deckId = extractDeckId(input);
-
-  if (!deckId) {
-    alert("Please enter a valid DuelingBook deck link");
+  if (!file) {
+    alert("Please select a .ydk file to upload.");
     return;
   }
 
-  try {
-    const res = await fetch(`https://www.duelingbook.com/php-scripts/load-deck.php?deck=${deckId}`);
-    const rawText = await res.text();
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const text = e.target.result;
+    const parsed = parseYDK(text);
+    window.currentDeck = parsed;
+    renderDeck(parsed);
+  };
+  reader.readAsText(file);
+}
 
-    console.log("🧾 Raw Response from DuelingBook:", rawText);
+function parseYDK(text) {
+  const main = [];
+  const extra = [];
+  const side = [];
 
-    let deck;
-    try {
-      deck = JSON.parse(rawText);
-    } catch (e) {
-      console.error("❌ Failed to parse JSON. Deck may be private or broken.", e);
-      alert("This deck could not be read — it may be private or invalid.");
-      return;
-    }
+  let current = null;
+  const lines = text.split("\n");
 
-    if (!deck || !deck.main || !Array.isArray(deck.main)) {
-      console.warn("❗ Deck is missing or malformed:", deck);
-      alert("❌ This deck appears to be empty, private, or malformed.");
-      return;
-    }
-
-    console.log("✅ Deck parsed successfully:", deck);
-    window.currentDeck = deck;
-    await renderDeck(deck);
-
-  } catch (err) {
-    console.error("❌ Network error:", err);
-    alert("Could not fetch the deck. Try again later.");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("#")) continue;
+    if (trimmed === "main") current = main;
+    else if (trimmed === "extra") current = extra;
+    else if (trimmed === "side") current = side;
+    else if (/^\d+$/.test(trimmed)) current?.push(Number(trimmed));
   }
+
+  return { main, extra, side };
 }
 
 async function renderDeck(deck) {
@@ -52,12 +46,12 @@ async function renderDeck(deck) {
   mainUL.innerHTML = "";
   extraUL.innerHTML = "";
 
-  for (const id of Array.isArray(deck.main) ? deck.main : []) {
+  for (const id of deck.main) {
     const li = await createCardElement(id);
     mainUL.appendChild(li);
   }
 
-  for (const id of Array.isArray(deck.extra) ? deck.extra : []) {
+  for (const id of deck.extra) {
     const li = await createCardElement(id);
     extraUL.appendChild(li);
   }
@@ -69,7 +63,6 @@ async function createCardElement(passcode) {
   const card = await fetchCardData(passcode);
   if (!card) {
     li.textContent = `❌ Unknown Card (${passcode})`;
-    console.warn("Unknown Card ID:", passcode);
     return li;
   }
 
@@ -86,10 +79,7 @@ async function fetchCardData(passcode) {
   try {
     const res = await fetch(`${ygoproApi}id=${passcode}`);
     const data = await res.json();
-    if (!data.data || !data.data.length) {
-      console.warn("No YGOPro match for:", passcode);
-      return null;
-    }
+    if (!data.data || !data.data.length) return null;
 
     const card = data.data[0];
     cardCache[passcode] = card;
@@ -101,5 +91,5 @@ async function fetchCardData(passcode) {
 }
 
 function checkLegality() {
-  alert("Legality logic will be upgraded in Step 4B!");
+  alert("Legality rules coming in the next step!");
 }
