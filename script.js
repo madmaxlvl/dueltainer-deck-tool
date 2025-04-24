@@ -29,20 +29,29 @@ function parseYDK(text) {
   const extra = [];
   const side = [];
 
-  let current = null;
+  let currentSection = null;
+
   const lines = text.split("\n");
 
   for (const line of lines) {
     const trimmed = line.trim();
-    if (trimmed.startsWith("#")) continue;
-    if (trimmed === "main") current = main;
-    else if (trimmed === "extra") current = extra;
-    else if (trimmed === "side") current = side;
-    else if (/^\d+$/.test(trimmed)) current?.push(Number(trimmed));
+
+    if (trimmed === "main") {
+      currentSection = main;
+    } else if (trimmed === "extra") {
+      currentSection = extra;
+    } else if (trimmed === "side") {
+      currentSection = side;
+    } else if (trimmed.startsWith("#") || trimmed === "") {
+      continue; // ignore comments and blank lines
+    } else if (/^\d+$/.test(trimmed)) {
+      currentSection?.push(Number(trimmed));
+    }
   }
 
   return { main, extra, side };
 }
+
 
 async function renderDeck(deck) {
   const mainUL = document.getElementById("main-deck");
