@@ -278,20 +278,33 @@ function setupSearchBar() {
 async function searchCards(query) {
   if (!query.trim()) return;
   try {
-    const res = await fetch(`${ygoproApi}fname=${encodeURIComponent(query.trim())}`);
+    const res = await fetch(`${ygoproApi}fname=${encodeURIComponent(query.trim())}&num=30&misc=yes`);
     const data = await res.json();
+    const container = document.createElement("div");
+    container.style.display = "grid";
+    container.style.gridTemplateColumns = "repeat(auto-fill, minmax(130px, 1fr))";
+    container.style.gap = "10px";
+    container.style.margin = "10px 0";
+    document.body.insertBefore(container, document.getElementById("deck-manager-feedback"));
+
     if (data.data?.length) {
       showFeedback(`Found ${data.data.length} result(s). Click a card to add.`);
       data.data.forEach(card => {
         card.image_url = card.card_images?.[0]?.image_url || "";
         cardCache[card.id] = card;
-        showTooltip({ pageX: 100, pageY: 100 }, card);
-        setTimeout(hideTooltip, 3000);
-        document.addEventListener("click", () => {
-          if (getCardTier(card) <= 2 || card.type.includes("Fusion") || card.type.includes("Synchro")) extraDeckCards.push(card);
-          else mainDeckCards.push(card);
+        const div = document.createElement("div");
+        div.style.border = "1px solid #ccc";
+        div.style.borderRadius = "8px";
+        div.style.background = "#1e1e1e";
+        div.style.padding = "5px";
+        div.style.cursor = "pointer";
+        div.innerHTML = `<img src="${card.image_url}" alt="${card.name}" style="width:100%;border-radius:4px"><div style="text-align:center;font-size:0.9em;margin-top:4px">${card.name}</div>`;
+        div.onclick = () => {
+          const zone = getCardTier(card) <= 2 || card.type.includes("Fusion") || card.type.includes("Synchro") ? extraDeckCards : mainDeckCards;
+          zone.push(card);
           updateDeckZonesUI();
-        }, { once: true });
+        };
+        container.appendChild(div);
       });
     } else {
       showFeedback("No cards found.", false);
@@ -314,6 +327,22 @@ function setupExportButton() {
 }
 
 function exportDeck() {
+  const banned = [], aTier = [], bTier = [];
+  const allCards = [...mainDeckCards, ...extraDeckCards];
+  allCards.forEach(c => {
+    const tier = getCardTier(c);
+    if (tier === 0) banned.push(c.name);
+    else if (tier === 1) aTier.push(c.name);
+    else if (tier === 2) bTier.push(c.name);
+  });
+  const listSummary = [
+    `BANNED (${banned.length}): ${banned.join(", ") || "None"}`,
+    `A Tier (${aTier.length}): ${aTier.join(", ") || "None"}`,
+    `B Tier (${bTier.length}): ${bTier.join(", ") || "None"}`
+  ].join("
+");
+
+  console.log(listSummary);
   const lines = ["#main", ...mainDeckCards.map(c => c.id), "#extra", ...extraDeckCards.map(c => c.id), "!side"];
   const text = lines.join("\r\n");
   const blob = new Blob([text], { type: "text/plain" });
@@ -323,7 +352,8 @@ function exportDeck() {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  showFeedback("Deck exported as .ydk", true);
+  showFeedback("Deck exported as .ydk
+" + listSummary, true);
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -347,4 +377,3 @@ window.addEventListener("DOMContentLoaded", () => {
   setupSearchBar();
   setupExportButton();
 });
-
