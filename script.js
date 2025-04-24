@@ -1,5 +1,5 @@
 // =========================
-// FULL FIXED script.js FILE (Updated to support !main/!extra/!side + handleFileUpload alias)
+// FULL FIXED script.js FILE (Safe for all DOM states + handleFileUpload)
 // =========================
 
 const cardCache = {};
@@ -65,7 +65,8 @@ function handleDeckFileImport(file) {
 
     console.log("Parsed .ydk deck:", deck);
     renderDeck(deck);
-    $("deck-name-input").value = file.name.replace(/\.ydk$/i, "");
+    const nameBox = $("deck-name-input");
+    if (nameBox) nameBox.value = file.name.replace(/\.ydk$/i, "");
     showFeedback("Deck imported.", true);
   };
 
@@ -75,7 +76,8 @@ function handleDeckFileImport(file) {
 
 // ✅ Alias for backward compatibility with older onclick="handleFileUpload()" HTML
 function handleFileUpload() {
-  $("import-file-input").click();
+  const input = $("import-file-input");
+  if (input) input.click();
 }
 
 // ==========================
@@ -100,6 +102,8 @@ function renderDeck(deck) {
 function updateDeckZonesUI() {
   const mainList = $("main-deck-list");
   const extraList = $("extra-deck-list");
+  if (!mainList || !extraList) return;
+
   mainList.innerHTML = "";
   extraList.innerHTML = "";
 
@@ -118,20 +122,28 @@ function updateDeckZonesUI() {
 // ==========================
 function showFeedback(message, success = true) {
   const el = $("deck-manager-feedback");
+  if (!el) return;
   el.textContent = message;
   el.className = success ? "dm-success" : "dm-error";
 }
 
 // ==========================
-// Event Listeners
+// Event Listeners (Safe)
 // ==========================
-$("import-deck-btn").addEventListener("click", () => $("import-file-input").click());
-$("import-file-input").addEventListener("change", function () {
-  const file = this.files[0];
-  if (!file || !file.name.toLowerCase().endsWith(".ydk")) {
-    showFeedback("Please select a valid .ydk file.", false);
-    return;
+window.addEventListener("DOMContentLoaded", () => {
+  const importBtn = $("import-deck-btn");
+  const inputFile = $("import-file-input");
+
+  if (importBtn && inputFile) {
+    importBtn.addEventListener("click", () => inputFile.click());
+    inputFile.addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file || !file.name.toLowerCase().endsWith(".ydk")) {
+        showFeedback("Please select a valid .ydk file.", false);
+        return;
+      }
+      handleDeckFileImport(file);
+      this.value = "";
+    });
   }
-  handleDeckFileImport(file);
-  this.value = "";
 });
