@@ -1,6 +1,6 @@
 // === Simulated Tier Lists (Replace with live Sheets in Step 4) ===
 const BANNED = ["Pot of Greed", "Raigeki", "Monster Reborn"];
-const ATIER = ["Ash Blossom & Joyous Spring", "Maxx " + "C"]; // escaped due to quotes
+const ATIER = ["Ash Blossom & Joyous Spring", "Maxx C"];
 const BTIER = ["Called by the Grave", "Foolish Burial", "Twin Twisters"];
 const EXEMPT = ["Celtic Guardian", "Blue-Eyes White Dragon"];
 
@@ -70,9 +70,9 @@ async function checkLegality() {
   let bCount = 0;
 
   for (const [id, count] of Object.entries(cardCounts)) {
-    const name = id; // We'll simulate name-to-ID for now (Step 4 gets real names)
+    const name = id; // TEMP: using ID as fake name
     const isExempt = EXEMPT.includes(name);
-    const isNormal = false; // No API yet to confirm
+    const isNormal = false;
 
     if (BANNED.includes(name)) illegal.banned.push(name);
     if (ATIER.includes(name)) { aCount++; if (aCount > 3) illegal.atier.push(name); }
@@ -80,7 +80,6 @@ async function checkLegality() {
     if (count > 1 && !isExempt && !isNormal) illegal.duplicates.push(`${name} x${count}`);
   }
 
-  // Output
   const output = [];
 
   if (illegal.banned.length) output.push("🚫 Banned Cards: " + illegal.banned.join(", "));
