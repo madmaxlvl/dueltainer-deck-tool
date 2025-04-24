@@ -219,14 +219,17 @@ function checkLegality() {
   if (messages.length === 0) {
     showFeedback("✅ Deck is legal!", true);
   } else {
-    showFeedback(messages.join("
-"), false);
+    showFeedback(messages.join("<br>"), false);
   }
 }
 function handleDeckFileImport(file) {
   const reader = new FileReader();
   reader.onload = () => {
-    const lines = reader.result.split(/\r?\n/);
+    const lines = reader.result.split(/
+?
+|
+|
+/);
     const deckData = { main: [], extra: [] };
     let section = "main";
     lines.forEach(line => {
@@ -258,6 +261,8 @@ function renderDeck(deck) {
       extraDeckCards = results2.filter(card => card);
       updateDeckZonesUI();
     });
+  });
+});
   });
 }
 
