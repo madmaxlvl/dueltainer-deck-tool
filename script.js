@@ -15,20 +15,35 @@ async function importDeck() {
     return;
   }
 
-  const res = await fetch(`https://www.duelingbook.com/php-scripts/load-deck.php?deck=${deckId}`);
-  if (!res.ok) return alert("Failed to fetch deck.");
+  try {
+    const res = await fetch(`https://www.duelingbook.com/php-scripts/load-deck.php?deck=${deckId}`);
+    const text = await res.text();
 
-  const deck = await res.json();
-  console.log("Deck loaded:", deck); // ✅ LOG THIS
+    // Try to parse JSON manually
+    let deck;
+    try {
+      deck = JSON.parse(text);
+    } catch {
+      console.error("Failed to parse deck as JSON:", text);
+      alert("This deck may be private or invalid.");
+      return;
+    }
 
-  if (!deck.main || deck.main.length === 0) {
-    alert("This deck appears empty or private.");
-    return;
+    if (!deck || !Array.isArray(deck.main)) {
+      alert("This deck is empty, invalid, or not public.");
+      console.error("Invalid deck object:", deck);
+      return;
+    }
+
+    console.log("Deck loaded:", deck);
+    window.currentDeck = deck;
+    await renderDeck(deck);
+  } catch (err) {
+    console.error("Error importing deck:", err);
+    alert("Something went wrong while loading the deck.");
   }
-
-  window.currentDeck = deck;
-  await renderDeck(deck);
 }
+
 
 async function renderDeck(deck) {
   const mainUL = document.getElementById("main-deck");
