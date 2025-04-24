@@ -4,20 +4,24 @@
   <meta charset="UTF-8">
   <title>Dueltainer Deck Tool</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.ico">
 </head>
 <body>
-  <h1>Dueltainer Deck Tool</h1>
+  <h1>🃏 Upload a .YDK Deck File</h1>
 
- <input type="file" id="fileInput" accept=".ydk">
-<button onclick="handleFileUpload()">Import Deck</button>
-<button onclick="checkLegality()">Check Legality</button>
+  <input type="file" id="fileInput" accept=".ydk">
+  <button onclick="handleFileUpload()">Import Deck</button>
+  <button onclick="checkLegality()">Check Legality</button>
 
   <div id="deck-area">
-    <h2>Main Deck</h2>
-    <ul id="main-deck"></ul>
-
-    <h2>Extra Deck</h2>
-    <ul id="extra-deck"></ul>
+    <div>
+      <h2>Main Deck</h2>
+      <ul id="main-deck"></ul>
+    </div>
+    <div>
+      <h2>Extra Deck</h2>
+      <ul id="extra-deck"></ul>
+    </div>
   </div>
 
   <div id="result"></div>
