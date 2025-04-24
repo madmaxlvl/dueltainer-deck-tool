@@ -31,8 +31,12 @@ function parseYDK(text) {
 
   let currentSection = null;
 
-  // Normalize line breaks to "\n"
-  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  const normalized = text
+    .replace(/\r\n/g, '\n')       // normalize Windows line breaks
+    .replace(/\r/g, '\n')         // normalize Mac line breaks
+    .replace(/,\s*/g, '\n');      // convert comma-separated into line-separated
+
+  const lines = normalized.split('\n');
 
   console.log("🔍 Normalized .ydk lines:", lines);
 
