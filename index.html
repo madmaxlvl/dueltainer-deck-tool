@@ -1,112 +1,31 @@
-const cardCache = {};
-const ygoproApi = "https://db.ygoprodeck.com/api/v7/cardinfo.php?";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dueltainer Deck Tool</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.ico">
+</head>
+<body>
+  <h1>🃏 Upload a .YDK Deck File</h1>
 
-function handleFileUpload() {
-  console.log("📂 Upload clicked");
+  <input type="file" id="fileInput" accept=".ydk">
+  <button onclick="handleFileUpload()">Import Deck</button>
+  <button onclick="checkLegality()">Check Legality</button>
 
-  const fileInput = document.getElementById("fileInput");
-  if (!fileInput) {
-    alert("File input not found!");
-    return;
-  }
+  <div id="deck-area">
+    <div>
+      <h2>Main Deck</h2>
+      <ul id="main-deck"></ul>
+    </div>
+    <div>
+      <h2>Extra Deck</h2>
+      <ul id="extra-deck"></ul>
+    </div>
+  </div>
 
-  const file = fileInput.files[0];
-  if (!file) {
-    alert("Please select a .ydk file to upload.");
-    return;
-  }
+  <div id="result"></div>
 
-  console.log("📁 File selected:", file.name);
-
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    console.log("📥 File loaded");
-    const text = e.target.result;
-    const parsed = parseYDK(text);
-    console.log("🧩 Parsed Deck:", parsed);
-
-    if (!parsed.main.length && !parsed.extra.length) {
-      alert("No cards found. Is this a valid .ydk file?");
-      return;
-    }
-
-    window.currentDeck = parsed;
-    renderDeck(parsed);
-  };
-
-  reader.readAsText(file);
-}
-
-function parseYDK(text) {
-  const main = [];
-  const extra = [];
-  const side = [];
-
-  let current = null;
-  const lines = text.split("\n");
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith("#")) continue;
-    if (trimmed === "main") current = main;
-    else if (trimmed === "extra") current = extra;
-    else if (trimmed === "side") current = side;
-    else if (/^\d+$/.test(trimmed)) current?.push(Number(trimmed));
-  }
-
-  return { main, extra, side };
-}
-
-async function renderDeck(deck) {
-  const mainUL = document.getElementById("main-deck");
-  const extraUL = document.getElementById("extra-deck");
-  mainUL.innerHTML = "";
-  extraUL.innerHTML = "";
-
-  for (const id of deck.main) {
-    const li = await createCardElement(id);
-    mainUL.appendChild(li);
-  }
-
-  for (const id of deck.extra) {
-    const li = await createCardElement(id);
-    extraUL.appendChild(li);
-  }
-}
-
-async function createCardElement(passcode) {
-  const li = document.createElement("li");
-
-  const card = await fetchCardData(passcode);
-  if (!card) {
-    li.textContent = `❌ Unknown Card (${passcode})`;
-    return li;
-  }
-
-  li.innerHTML = `
-    <img src="${card.card_images[0].image_url_small}" alt="${card.name}" title="${card.name}"><br>
-    ${card.name}
-  `;
-  return li;
-}
-
-async function fetchCardData(passcode) {
-  if (cardCache[passcode]) return cardCache[passcode];
-
-  try {
-    const res = await fetch(`${ygoproApi}id=${passcode}`);
-    const data = await res.json();
-    if (!data.data || !data.data.length) return null;
-
-    const card = data.data[0];
-    cardCache[passcode] = card;
-    return card;
-  } catch (err) {
-    console.error("Error fetching card", passcode, err);
-    return null;
-  }
-}
-
-function checkLegality() {
-  alert("Legality logic coming next!");
-}
+  <script src="script.js"></script>
+</body>
+</html>
