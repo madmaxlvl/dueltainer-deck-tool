@@ -30,7 +30,6 @@ function parseYDK(text) {
   const side = [];
 
   let currentSection = null;
-
   const lines = text.split("\n");
 
   for (const line of lines) {
@@ -43,7 +42,7 @@ function parseYDK(text) {
     } else if (trimmed === "side") {
       currentSection = side;
     } else if (trimmed.startsWith("#") || trimmed === "") {
-      continue; // ignore comments and blank lines
+      continue;
     } else if (/^\d+$/.test(trimmed)) {
       currentSection?.push(Number(trimmed));
     }
@@ -51,7 +50,6 @@ function parseYDK(text) {
 
   return { main, extra, side };
 }
-
 
 async function renderDeck(deck) {
   const mainUL = document.getElementById("main-deck");
@@ -80,7 +78,7 @@ async function createCardElement(passcode) {
   }
 
   li.innerHTML = `
-    <img src="${card.card_images[0].image_url_small}" alt="${card.name}" title="${card.name}"><br>
+    <img src="${card.card_images[0].image_url_small}" alt="${card.name}" title="${card.name}" style="height:100px;"><br>
     ${card.name}
   `;
   return li;
