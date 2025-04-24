@@ -2,111 +2,82 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dueltainer Deck Tool</title>
+  <title>Dueltainer Deck Builder</title>
+  <link rel="icon" href="data:,">
   <style>
     body {
-      background-color: #111;
-      color: #eee;
-      font-family: 'Segoe UI', sans-serif;
+      background: #111;
+      color: #ddd;
+      font-family: Arial, sans-serif;
       margin: 0;
       padding: 20px;
     }
-    h1 {
-      text-align: center;
-      color: gold;
-    }
-    .panel {
+    h2 { color: cyan; }
+    .deck-grid {
       display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .deck-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, 140px);
+      flex-wrap: wrap;
       gap: 10px;
+      margin-bottom: 20px;
     }
     .deck-card {
-      position: relative;
       width: 140px;
-      height: 200px;
-      border: 1px solid #333;
-      border-radius: 6px;
-      overflow: hidden;
-      background-color: #222;
+      position: relative;
     }
     .deck-card img {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
+      border-radius: 6px;
     }
     .badge {
       position: absolute;
-      bottom: 2px;
-      right: 2px;
-      font-size: 12px;
-      padding: 2px 4px;
-      border-radius: 3px;
-      background-color: rgba(0, 0, 0, 0.8);
+      top: 3px;
+      right: 3px;
+      font-size: 11px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      color: white;
+      font-weight: bold;
     }
-    .badge.banned { color: red; }
-    .badge.a-tier { color: gold; }
-    .badge.b-tier { color: cyan; }
-    #tooltip {
-      display: none;
-      position: absolute;
-      background: #222;
-      color: #fff;
-      border: 1px solid #555;
-      padding: 10px;
-      max-width: 240px;
-      z-index: 999;
-      border-radius: 8px;
-    }
+    .banned { background: red; }
+    .a-tier { background: gold; color: black; }
+    .b-tier { background: #2980b9; }
     #deck-manager-feedback {
-      text-align: center;
-      margin-bottom: 15px;
+      margin: 10px 0;
       font-weight: bold;
     }
-    .dm-success { color: #0f0; }
-    .dm-error { color: #f33; }
-    button {
-      background-color: gold;
-      color: black;
-      font-weight: bold;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
-      margin-right: 8px;
-      cursor: pointer;
+    .dm-success { color: lime; }
+    .dm-error { color: red; }
+    #deck-legend div {
+      margin-top: 4px;
     }
-    input[type="file"] {
+    #tooltip {
+      position: absolute;
       display: none;
+      z-index: 1000;
+      background: #222;
+      border: 1px solid #ccc;
+      color: #fff;
+      padding: 8px;
+      border-radius: 8px;
+      max-width: 220px;
     }
   </style>
 </head>
 <body>
-
-  <h1>Dueltainer Deck Tool</h1>
-
-  <div id="deck-manager-feedback"></div>
-
-  <div class="panel">
-    <div>
-      <button id="import-deck-btn">Import .ydk</button>
-      <input type="file" id="import-file-input" accept=".ydk">
-      <button id="deck-check-btn">Check Legality</button>
-      <button id="sort-deck-btn">Sort Deck</button>
-    </div>
+  <h2>Dueltainer Deck Builder</h2>
+  <div>
+    <input type="file" id="import-file-input" accept=".ydk" style="display:none;">
+    <button id="import-deck-btn">Import .YDK</button>
+    <button id="deck-check-btn">Check Legality</button>
+    <button id="sort-deck-btn">Sort Deck</button>
   </div>
-
-  <h2>Main Deck</h2>
-  <div id="main-deck-list" class="deck-container"></div>
-
-  <h2>Extra Deck</h2>
-  <div id="extra-deck-list" class="deck-container"></div>
+  <div id="deck-manager-feedback"></div>
+  <div id="deck-legend"></div>
+  <h3>Main Deck</h3>
+  <div id="main-deck-list" class="deck-grid"></div>
+  <h3>Extra Deck</h3>
+  <div id="extra-deck-list" class="deck-grid"></div>
 
   <div id="tooltip"></div>
-
   <script src="script.js"></script>
 </body>
 </html>
