@@ -1,121 +1,125 @@
+// =========================
+// FULL FIXED script.js FILE
+// =========================
+
 const cardCache = {};
 const ygoproApi = "https://db.ygoprodeck.com/api/v7/cardinfo.php?";
 
-function handleFileUpload() {
-  const fileInput = document.getElementById("fileInput");
-  const file = fileInput.files[0];
+const $ = id => document.getElementById(id);
 
-  if (!file) {
-    alert("Please select a .ydk file to upload.");
-    return;
-  }
+let mainDeckCards = [];
+let extraDeckCards = [];
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const text = e.target.result;
-    const parsed = parseYDK(text);
-    if (!parsed.main.length && !parsed.extra.length) {
-      alert("No cards found. Is this a valid .ydk file?");
-      return;
-    }
-    window.currentDeck = parsed;
-    renderDeck(parsed);
-  };
-  reader.readAsText(file);
-}
-
-function parseYDK(text) {
-  const main = [];
-  const extra = [];
-  const side = [];
-
-  let currentSection = null;
-
-  const normalized = text
-    .replace(/\r\n/g, '\n')       // normalize Windows line breaks
-    .replace(/\r/g, '\n')         // normalize Mac line breaks
-    .replace(/,\s*/g, '\n');      // convert comma-separated into line-separated
-
-  const lines = normalized.split('\n');
-
-  console.log("🔍 Normalized .ydk lines:", lines);
-
-  for (let rawLine of lines) {
-    const trimmed = rawLine.trim();
-
-    if (trimmed.startsWith("#") || trimmed === "") {
-      continue;
-    }
-
-    const keyword = trimmed.toLowerCase();
-    if (keyword === "main") {
-      currentSection = main;
-    } else if (keyword === "extra") {
-      currentSection = extra;
-    } else if (keyword === "side") {
-      currentSection = side;
-    } else if (/^\d+$/.test(trimmed)) {
-      currentSection?.push(Number(trimmed));
-    } else {
-      console.warn("⚠️ Skipping unrecognized line in .ydk:", rawLine);
-    }
-  }
-
-  console.log("✅ Final Parsed Deck:", { main, extra, side });
-  return { main, extra, side };
-}
-
-
-async function renderDeck(deck) {
-  const mainUL = document.getElementById("main-deck");
-  const extraUL = document.getElementById("extra-deck");
-  mainUL.innerHTML = "";
-  extraUL.innerHTML = "";
-
-  for (const id of deck.main) {
-    const li = await createCardElement(id);
-    mainUL.appendChild(li);
-  }
-
-  for (const id of deck.extra) {
-    const li = await createCardElement(id);
-    extraUL.appendChild(li);
-  }
-}
-
-async function createCardElement(passcode) {
-  const li = document.createElement("li");
-
-  const card = await fetchCardData(passcode);
-  if (!card) {
-    li.textContent = `❌ Unknown Card (${passcode})`;
-    return li;
-  }
-
-  li.innerHTML = `
-    <img src="${card.card_images[0].image_url_small}" alt="${card.name}" title="${card.name}" style="height:100px;"><br>
-    ${card.name}
-  `;
-  return li;
-}
-
-async function fetchCardData(passcode) {
-  if (cardCache[passcode]) return cardCache[passcode];
+// =============================
+// Load Card by Passcode (API)
+// =============================
+async function loadCardById(id) {
+  const numericId = parseInt(id, 10);
+  if (cardCache[numericId]) return cardCache[numericId];
 
   try {
-    const res = await fetch(`${ygoproApi}id=${passcode}`);
+    const res = await fetch(`${ygoproApi}id=${numericId}`);
     const data = await res.json();
     if (!data.data || !data.data.length) return null;
 
     const card = data.data[0];
-    cardCache[passcode] = card;
+    card.image_url = card.card_images?.[0]?.image_url || "";
+    cardCache[numericId] = card;
     return card;
   } catch (err) {
-    console.error("Error fetching card", passcode, err);
+    console.error("Failed to fetch", id, err);
     return null;
   }
 }
 
-function checkLegality() {
-  alert("Legality logic coming next!");
+// ==========================
+// .ydk File Import Handling
+// ==========================
+function handleDeckFileImport(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const lines = reader.result
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n")
+      .replace(/,\s*/g, "\n")
+      .split("\n");
+
+    const deck = { main: [], extra: [] };
+    let section = "main";
+
+    for (const raw of lines) {
+      const line = raw.trim().toLowerCase();
+      if (!line || line.startsWith("#") || line.startsWith("!")) {
+        if (line.includes("main")) section = "main";
+        else if (line.includes("extra")) section = "extra";
+        else if (line.includes("side")) section = "side";
+        continue;
+      }
+      if (section !== "side") deck[section].push(line);
+    }
+
+    renderDeck(deck);
+    $("deck-name-input").value = file.name.replace(/\.ydk$/i, "");
+    showFeedback("Deck imported.", true);
+  };
+  reader.onerror = () => showFeedback("Failed to import .ydk file.", false);
+  reader.readAsText(file);
 }
+
+// ==========================
+// Render Deck to Grid UI
+// ==========================
+function renderDeck(deck) {
+  mainDeckCards = [];
+  extraDeckCards = [];
+
+  Promise.all(deck.main.map(loadCardById)).then(mainCards => {
+    mainDeckCards = mainCards.filter(Boolean);
+    Promise.all(deck.extra.map(loadCardById)).then(extraCards => {
+      extraDeckCards = extraCards.filter(Boolean);
+      updateDeckZonesUI();
+    });
+  });
+}
+
+// ==========================
+// Update Main/Extra UI
+// ==========================
+function updateDeckZonesUI() {
+  const mainList = $("main-deck-list");
+  const extraList = $("extra-deck-list");
+  mainList.innerHTML = "";
+  extraList.innerHTML = "";
+
+  [...mainDeckCards, ...extraDeckCards].forEach(card => {
+    const div = document.createElement("div");
+    div.className = "deck-card";
+    div.innerHTML = `<img src="${card.image_url}" alt="${card.name}">`;
+    (card.type.toLowerCase().includes("fusion") || card.type.toLowerCase().includes("synchro"))
+      ? extraList.appendChild(div)
+      : mainList.appendChild(div);
+  });
+}
+
+// ==========================
+// Feedback Helper
+// ==========================
+function showFeedback(message, success = true) {
+  const el = $("deck-manager-feedback");
+  el.textContent = message;
+  el.className = success ? "dm-success" : "dm-error";
+}
+
+// ==========================
+// Event Listeners
+// ==========================
+$("import-deck-btn").addEventListener("click", () => $("import-file-input").click());
+$("import-file-input").addEventListener("change", function () {
+  const file = this.files[0];
+  if (!file || !file.name.toLowerCase().endsWith(".ydk")) {
+    showFeedback("Please select a valid .ydk file.", false);
+    return;
+  }
+  handleDeckFileImport(file);
+  this.value = "";
+});
