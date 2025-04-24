@@ -19,6 +19,13 @@ async function importDeck() {
   if (!res.ok) return alert("Failed to fetch deck.");
 
   const deck = await res.json();
+  console.log("Deck loaded:", deck); // ✅ LOG THIS
+
+  if (!deck.main || deck.main.length === 0) {
+    alert("This deck appears empty or private.");
+    return;
+  }
+
   window.currentDeck = deck;
   await renderDeck(deck);
 }
@@ -45,7 +52,8 @@ async function createCardElement(passcode) {
 
   const card = await fetchCardData(passcode);
   if (!card) {
-    li.textContent = `Unknown Card (${passcode})`;
+    li.textContent = `❌ Unknown Card (${passcode})`;
+    console.warn("Unknown Card ID:", passcode);
     return li;
   }
 
@@ -62,7 +70,10 @@ async function fetchCardData(passcode) {
   try {
     const res = await fetch(`${ygoproApi}id=${passcode}`);
     const data = await res.json();
-    if (!data.data || !data.data.length) return null;
+    if (!data.data || !data.data.length) {
+      console.warn("No YGOPro match for:", passcode);
+      return null;
+    }
 
     const card = data.data[0];
     cardCache[passcode] = card;
