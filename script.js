@@ -1,5 +1,5 @@
 // =========================
-// FULL FEATURED script.js FOR DECK TOOL with Google Sheets Sync, Sorting, Tooltips, and Deck Import
+// FULLY FUNCTIONAL DECK BUILDER SCRIPT WITH GOOGLE SHEETS, TIER RULES, TOOLTIP, AND SINGLETON CHECK
 // =========================
 
 const cardCache = {};
@@ -13,9 +13,6 @@ let ATIER = [];
 let BTIER = [];
 let EXEMPT = [];
 
-// =========================
-// Google Sheets Config
-// =========================
 const SHEETS_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
 const SHEET_ID = '1qnuGCGG5NM80m6PRSxwutvvczbs2rgovODMsz84QVAI';
 const API_KEY = 'AIzaSyBetmTaErhwDcwkoj672dy15p_xB8P7ENE';
@@ -51,7 +48,7 @@ async function loadAllLists() {
 function showFeedback(msg, success = true) {
   const el = $("deck-manager-feedback");
   if (!el) return;
-  el.textContent = msg;
+  el.innerHTML = msg;
   el.className = success ? "dm-success" : "dm-error";
 }
 
@@ -65,8 +62,7 @@ function getCardTier(card) {
 
 function getCardTypeValue(type) {
   const map = {
-    monster: 1, spell: 2, trap: 3,
-    fusion: 4, synchro: 5, ritual: 6
+    monster: 1, spell: 2, trap: 3, fusion: 4, synchro: 5, ritual: 6
   };
   const t = type.toLowerCase();
   if (t.includes("fusion")) return map.fusion;
@@ -153,7 +149,7 @@ function updateDeckZonesUI() {
     div.className = "deck-card";
     div.innerHTML = `<div style='position:relative;'>
       <img src="${card.image_url}" alt="${card.name}" 
-           onmouseenter='showTooltip(event, ${JSON.stringify(card)})' 
+           onmouseenter='showTooltip(event, ${JSON.stringify(card).replace(/'/g, "&apos;")})' 
            onmouseleave='hideTooltip()'>
       <div style='position:absolute; bottom:2px; right:2px; font-size:10px;'>${getCardBadge(card.name)}</div>
     </div>`;
@@ -161,33 +157,25 @@ function updateDeckZonesUI() {
   });
 }
 
-// Enforce singleton rule with exemptions
 function isSingletonExempt(card) {
   const name = card.name.toLowerCase();
   const type = card.type?.toLowerCase() || "";
-  const isNormal = type.includes("normal") && type.includes("monster");
-  const isNonEffectRitual = type.includes("ritual") && !type.includes("effect");
-  const isNonEffectFusion = type.includes("fusion") && !type.includes("effect");
-  const isNonEffectSynchro = type.includes("synchro") && !type.includes("effect");
-
   return (
     EXEMPT.map(n => n.toLowerCase()).includes(name) ||
-    isNormal ||
-    isNonEffectRitual ||
-    isNonEffectFusion ||
-    isNonEffectSynchro
+    (type.includes("normal") && type.includes("monster")) ||
+    (type.includes("ritual") && !type.includes("effect")) ||
+    (type.includes("fusion") && !type.includes("effect")) ||
+    (type.includes("synchro") && !type.includes("effect"))
   );
 }
 
 function checkSingletonViolations(deckCards) {
   const countMap = {};
   const violations = [];
-
   deckCards.forEach(card => {
     const name = card.name.toLowerCase();
     countMap[name] = (countMap[name] || 0) + 1;
   });
-
   for (const [name, count] of Object.entries(countMap)) {
     const card = deckCards.find(c => c.name.toLowerCase() === name);
     if (count > 1 && !isSingletonExempt(card)) {
@@ -212,7 +200,6 @@ function checkLegality() {
   if (bCount > 5) messages.push(`Too many B-Tier cards: ${bCount} (limit is 5).`);
   if (banned.length)
     messages.push(`Banned cards found: ${banned.map(c => c.name).join(", ")}`);
-
   const singletonIssues = checkSingletonViolations(allCards);
   if (singletonIssues.length) messages.push(...singletonIssues);
 
@@ -222,14 +209,11 @@ function checkLegality() {
     showFeedback(messages.join("<br>"), false);
   }
 }
+
 function handleDeckFileImport(file) {
   const reader = new FileReader();
   reader.onload = () => {
-    const lines = reader.result.split(/
-?
-|
-|
-/);
+    const lines = reader.result.split(/\r?\n|\n|\r/);
     const deckData = { main: [], extra: [] };
     let section = "main";
     lines.forEach(line => {
@@ -262,17 +246,13 @@ function renderDeck(deck) {
       updateDeckZonesUI();
     });
   });
-});
-  });
 }
 
 window.addEventListener("DOMContentLoaded", () => {
   const importBtn = $("import-deck-btn");
   const inputFile = $("import-file-input");
-  const sortBtn = document.createElement("button");
-  sortBtn.textContent = "Sort Deck";
-  sortBtn.onclick = sortDeck;
-  document.body.appendChild(sortBtn);
+  const legalityBtn = $("deck-check-btn");
+  const sortBtn = $("sort-deck-btn");
 
   importBtn?.addEventListener("click", () => inputFile?.click());
   inputFile?.addEventListener("change", function () {
@@ -281,6 +261,8 @@ window.addEventListener("DOMContentLoaded", () => {
     handleDeckFileImport(file);
     this.value = "";
   });
+  legalityBtn?.addEventListener("click", checkLegality);
+  sortBtn?.addEventListener("click", sortDeck);
 
   loadAllLists();
 });
