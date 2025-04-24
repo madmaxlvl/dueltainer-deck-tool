@@ -290,9 +290,9 @@ async function searchCards(query) {
     container.style.gridTemplateColumns = "repeat(auto-fill, minmax(150px, 1fr))";
     container.style.gap = "10px";
     container.style.padding = "10px";
-    container.style.background = "#222";
-    container.style.border = "1px solid #555";
-    container.style.borderRadius = "8px";
+    container.style.background = "#141414";
+    container.style.border = "1px solid #2c2c2c";
+    container.style.borderRadius = "12px";
     container.style.marginTop = "10px";
     container.style.maxHeight = "60vh";
     container.style.overflowY = "auto";
@@ -305,9 +305,9 @@ async function searchCards(query) {
         card.image_url = card.card_images?.[0]?.image_url || "";
         cardCache[card.id] = card;
         const div = document.createElement("div");
-        div.style.border = "1px solid #ccc";
+        div.style.border = "1px solid #333";
         div.style.borderRadius = "8px";
-        div.style.background = "#1e1e1e";
+        div.style.background = "#1a1a1a";
         div.style.padding = "5px";
         div.style.cursor = "pointer";
         div.innerHTML = `<img src="${card.image_url}" alt="${card.name}" style="width:100%;border-radius:4px"><div style="text-align:center;font-size:0.9em;margin-top:4px">${card.name}</div>`;
