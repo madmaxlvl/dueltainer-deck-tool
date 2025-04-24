@@ -106,9 +106,9 @@ async function loadCardById(id) {
 }
 
 function getCardBadge(name) {
-  if (BANNED.includes(name)) return "<span class='badge banned'>🚫</span>";
-  if (ATIER.includes(name)) return "<span class='badge a-tier'>⭐</span>";
-  if (BTIER.includes(name)) return "<span class='badge b-tier'>🔹</span>";
+  if (BANNED.includes(name)) return "<span class='badge banned' title='Banned Card'>🚫 BANNED</span>";
+  if (ATIER.includes(name)) return "<span class='badge a-tier' title='A Tier Card'>⭐ A-TIER</span>";
+  if (BTIER.includes(name)) return "<span class='badge b-tier' title='B Tier Card'>🔹 B-TIER</span>";
   return "";
 }
 
@@ -148,11 +148,11 @@ function updateDeckZonesUI() {
     const div = document.createElement("div");
     div.className = "deck-card";
     div.innerHTML = `<div style='position:relative;'>
-      <img src="${card.image_url}" alt="${card.name}" 
-           onmouseenter='showTooltip(event, ${JSON.stringify(card).replace(/'/g, "&apos;")})' 
-           onmouseleave='hideTooltip()'>
-      <div style='position:absolute; bottom:2px; right:2px; font-size:10px;'>${getCardBadge(card.name)}</div>
-    </div>`;
+  <img src="${card.image_url}" alt="${card.name}" 
+       onmouseenter='showTooltip(event, ${JSON.stringify(card).replace(/'/g, "&apos;")})' 
+       onmouseleave='hideTooltip()'>
+  <div style='position:absolute; top:2px; right:2px; font-size:10px; font-weight:bold; background:red; color:white; padding:2px 6px; border-radius:4px;'>${getCardBadge(card.name)}</div>
+</div>`;
     (mainDeckCards.includes(card) ? mainList : extraList).appendChild(div);
   });
 }
