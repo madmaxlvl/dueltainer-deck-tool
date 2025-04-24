@@ -161,7 +161,68 @@ function updateDeckZonesUI() {
   });
 }
 
-// Keep the rest (file handling, check legality, feedback etc.) unchanged.
+// Enforce singleton rule with exemptions
+function isSingletonExempt(card) {
+  const name = card.name.toLowerCase();
+  const type = card.type?.toLowerCase() || "";
+  const isNormal = type.includes("normal") && type.includes("monster");
+  const isNonEffectRitual = type.includes("ritual") && !type.includes("effect");
+  const isNonEffectFusion = type.includes("fusion") && !type.includes("effect");
+  const isNonEffectSynchro = type.includes("synchro") && !type.includes("effect");
+
+  return (
+    EXEMPT.map(n => n.toLowerCase()).includes(name) ||
+    isNormal ||
+    isNonEffectRitual ||
+    isNonEffectFusion ||
+    isNonEffectSynchro
+  );
+}
+
+function checkSingletonViolations(deckCards) {
+  const countMap = {};
+  const violations = [];
+
+  deckCards.forEach(card => {
+    const name = card.name.toLowerCase();
+    countMap[name] = (countMap[name] || 0) + 1;
+  });
+
+  for (const [name, count] of Object.entries(countMap)) {
+    const card = deckCards.find(c => c.name.toLowerCase() === name);
+    if (count > 1 && !isSingletonExempt(card)) {
+      violations.push(`"${card.name}" appears ${count} times (limit 1).`);
+    }
+  }
+  return violations;
+}
+
+function checkLegality() {
+  const allCards = [...mainDeckCards, ...extraDeckCards];
+  const banned = allCards.filter(card => BANNED.includes(card.name));
+  const aCount = allCards.filter(card => ATIER.includes(card.name)).length;
+  const bCount = allCards.filter(card => BTIER.includes(card.name)).length;
+
+  const messages = [];
+  if (mainDeckCards.length < 40 || mainDeckCards.length > 60)
+    messages.push(`Main Deck must be 40–60 cards. You have ${mainDeckCards.length}.`);
+  if (extraDeckCards.length > 15)
+    messages.push(`Extra Deck cannot exceed 15 cards. You have ${extraDeckCards.length}.`);
+  if (aCount > 3) messages.push(`Too many A-Tier cards: ${aCount} (limit is 3).`);
+  if (bCount > 5) messages.push(`Too many B-Tier cards: ${bCount} (limit is 5).`);
+  if (banned.length)
+    messages.push(`Banned cards found: ${banned.map(c => c.name).join(", ")}`);
+
+  const singletonIssues = checkSingletonViolations(allCards);
+  if (singletonIssues.length) messages.push(...singletonIssues);
+
+  if (messages.length === 0) {
+    showFeedback("✅ Deck is legal!", true);
+  } else {
+    showFeedback(messages.join("
+"), false);
+  }
+}
 window.addEventListener("DOMContentLoaded", () => {
   const importBtn = $("import-deck-btn");
   const inputFile = $("import-file-input");
