@@ -127,7 +127,7 @@ function showTooltip(event, card) {
     tooltip.style.maxWidth = "200px";
     document.body.appendChild(tooltip);
   }
-  tooltip.innerHTML = `<strong>${card.name}</strong><br><img src='${card.image_url}' style='width:100%;'><br>${card.desc}<br><div style='margin-top:5px;'>${getCardBadge(card.name)}</div>`;
+  tooltip.innerHTML = `<strong>${card.name}</strong><br><img src='${card.image_url}' style='width:100%;'><br>${card.desc}<br><div style='margin-top:5px; font-weight:bold;'>Tier: ${getCardBadge(card.name)}</div>`;
   tooltip.style.left = event.pageX + 15 + "px";
   tooltip.style.top = event.pageY + 15 + "px";
   tooltip.style.display = "block";
@@ -139,6 +139,16 @@ function hideTooltip() {
 }
 
 function updateDeckZonesUI() {
+  const tierCounts = { 0: 0, 1: 0, 2: 0 };
+  mainDeckCards.concat(extraDeckCards).forEach(c => { const t = getCardTier(c); if (t < 3) tierCounts[t]++; });
+  const legend = document.getElementById('deck-legend');
+  if (legend) {
+    legend.innerHTML = `<strong>Legend:</strong>
+      <div><span class='badge banned'>🚫</span> BANNED (${tierCounts[0]})</div>
+      <div><span class='badge a-tier'>⭐</span> A-TIER (${tierCounts[1]})</div>
+      <div><span class='badge b-tier'>🔹</span> B-TIER (${tierCounts[2]})</div>`;
+  }
+
   const mainList = $("main-deck-list");
   const extraList = $("extra-deck-list");
   mainList.innerHTML = "";
@@ -146,7 +156,7 @@ function updateDeckZonesUI() {
 
   [...mainDeckCards, ...extraDeckCards].forEach(card => {
     const div = document.createElement("div");
-    div.className = "deck-card";
+    div.className = `deck-card tier-${getCardTier(card)}`;
     div.innerHTML = `<div style='position:relative;'>
   <img src="${card.image_url}" alt="${card.name}" 
        onmouseenter='showTooltip(event, ${JSON.stringify(card).replace(/'/g, "&apos;")})' 
