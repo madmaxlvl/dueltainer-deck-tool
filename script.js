@@ -1,5 +1,5 @@
 // =========================
-// FULL FIXED script.js FILE (Updated to support !main/!extra/!side)
+// FULL FIXED script.js FILE (Updated to support !main/!extra/!side + handleFileUpload alias)
 // =========================
 
 const cardCache = {};
@@ -71,6 +71,11 @@ function handleDeckFileImport(file) {
 
   reader.onerror = () => showFeedback("Failed to import .ydk file.", false);
   reader.readAsText(file);
+}
+
+// ✅ Alias for backward compatibility with older onclick="handleFileUpload()" HTML
+function handleFileUpload() {
+  $("import-file-input").click();
 }
 
 // ==========================
