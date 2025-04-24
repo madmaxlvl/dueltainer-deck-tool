@@ -1,5 +1,5 @@
 // =========================
-// FULL FIXED script.js FILE
+// FULL FIXED script.js FILE (Updated to support !main/!extra/!side)
 // =========================
 
 const cardCache = {};
@@ -48,20 +48,27 @@ function handleDeckFileImport(file) {
     let section = "main";
 
     for (const raw of lines) {
-      const line = raw.trim().toLowerCase();
+      const line = raw.trim();
+      const normalized = line.toLowerCase();
+
       if (!line || line.startsWith("#") || line.startsWith("!")) {
-        if (line.includes("main")) section = "main";
-        else if (line.includes("extra")) section = "extra";
-        else if (line.includes("side")) section = "side";
+        if (normalized.includes("main")) section = "main";
+        else if (normalized.includes("extra")) section = "extra";
+        else if (normalized.includes("side")) section = "side";
         continue;
       }
-      if (section !== "side") deck[section].push(line);
+
+      if (section !== "side" && /^\d+$/.test(line)) {
+        deck[section].push(line);
+      }
     }
 
+    console.log("Parsed .ydk deck:", deck);
     renderDeck(deck);
     $("deck-name-input").value = file.name.replace(/\.ydk$/i, "");
     showFeedback("Deck imported.", true);
   };
+
   reader.onerror = () => showFeedback("Failed to import .ydk file.", false);
   reader.readAsText(file);
 }
