@@ -30,9 +30,11 @@ function parseYDK(text) {
   const side = [];
 
   let currentSection = null;
-  const lines = text.split(/\r?\n/);
 
-  console.log("🔍 Raw .ydk lines:", lines);
+  // Normalize line breaks to "\n"
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+
+  console.log("🔍 Normalized .ydk lines:", lines);
 
   for (let rawLine of lines) {
     const trimmed = rawLine.trim();
@@ -41,11 +43,12 @@ function parseYDK(text) {
       continue;
     }
 
-    if (trimmed.toLowerCase() === "main") {
+    const keyword = trimmed.toLowerCase();
+    if (keyword === "main") {
       currentSection = main;
-    } else if (trimmed.toLowerCase() === "extra") {
+    } else if (keyword === "extra") {
       currentSection = extra;
-    } else if (trimmed.toLowerCase() === "side") {
+    } else if (keyword === "side") {
       currentSection = side;
     } else if (/^\d+$/.test(trimmed)) {
       currentSection?.push(Number(trimmed));
@@ -57,6 +60,7 @@ function parseYDK(text) {
   console.log("✅ Final Parsed Deck:", { main, extra, side });
   return { main, extra, side };
 }
+
 
 async function renderDeck(deck) {
   const mainUL = document.getElementById("main-deck");
