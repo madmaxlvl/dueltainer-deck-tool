@@ -1,5 +1,5 @@
 // =========================
-// FULL FEATURED script.js FOR DECK TOOL with Google Sheets Sync and Enhanced Sorting + Tooltips
+// FULL FEATURED script.js FOR DECK TOOL with Google Sheets Sync, Sorting, Tooltips, and Deck Import
 // =========================
 
 const cardCache = {};
@@ -223,6 +223,44 @@ function checkLegality() {
 "), false);
   }
 }
+function handleDeckFileImport(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const lines = reader.result.split(/\r?\n/);
+    const deckData = { main: [], extra: [] };
+    let section = "main";
+    lines.forEach(line => {
+      line = line.trim();
+      if (!line || line.startsWith("#") || line.startsWith("!")) {
+        const l = line.toLowerCase();
+        if (l.includes("#main")) section = "main";
+        else if (l.includes("#extra") || l.includes("!extra")) section = "extra";
+        else if (l.includes("#side") || l.includes("!side")) section = "side";
+        return;
+      }
+      if (section !== "side" && line) deckData[section].push(line);
+    });
+    renderDeck(deckData);
+    showFeedback("Deck imported successfully!", true);
+  };
+  reader.onerror = () => {
+    showFeedback("Failed to read deck file.", false);
+  };
+  reader.readAsText(file);
+}
+
+function renderDeck(deck) {
+  mainDeckCards = [];
+  extraDeckCards = [];
+  Promise.all(deck.main.map(id => loadCardById(id))).then(results => {
+    mainDeckCards = results.filter(card => card);
+    Promise.all(deck.extra.map(id => loadCardById(id))).then(results2 => {
+      extraDeckCards = results2.filter(card => card);
+      updateDeckZonesUI();
+    });
+  });
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   const importBtn = $("import-deck-btn");
   const inputFile = $("import-file-input");
