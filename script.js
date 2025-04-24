@@ -277,15 +277,27 @@ function setupSearchBar() {
 
 async function searchCards(query) {
   if (!query.trim()) return;
+  const oldResults = document.getElementById("search-results-container");
+  if (oldResults) oldResults.remove();
+
   try {
-    const res = await fetch(`${ygoproApi}fname=${encodeURIComponent(query.trim())}&num=30&misc=yes`);
+    const res = await fetch(`${ygoproApi}fname=${encodeURIComponent(query.trim())}&num=30&misc=yes&type=&level=&attribute=&race=&archetype=`);
     const data = await res.json();
+
     const container = document.createElement("div");
+    container.id = "search-results-container";
     container.style.display = "grid";
-    container.style.gridTemplateColumns = "repeat(auto-fill, minmax(130px, 1fr))";
+    container.style.gridTemplateColumns = "repeat(auto-fill, minmax(150px, 1fr))";
     container.style.gap = "10px";
-    container.style.margin = "10px 0";
-    document.body.insertBefore(container, document.getElementById("deck-manager-feedback"));
+    container.style.padding = "10px";
+    container.style.background = "#222";
+    container.style.border = "1px solid #555";
+    container.style.borderRadius = "8px";
+    container.style.marginTop = "10px";
+    container.style.maxHeight = "60vh";
+    container.style.overflowY = "auto";
+
+    document.getElementById("deckbuilder-container").appendChild(container);
 
     if (data.data?.length) {
       showFeedback(`Found ${data.data.length} result(s). Click a card to add.`);
@@ -377,3 +389,4 @@ window.addEventListener("DOMContentLoaded", () => {
   setupSearchBar();
   setupExportButton();
 });
+
